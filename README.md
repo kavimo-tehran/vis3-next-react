@@ -3,12 +3,12 @@ Kavimo Vis3 NextJs, React Component
 
 # Installation:
 ```
-npm i @kavimo/vis3-next-react
+npm i @kavimo-tehran/vis3-next-react
 ```
 
 # Use in Nextjs Pages Home:
 ```
-import { Vis3 } from '@kavimo/vis3-next-react';
+import { Vis3 } from '@kavimo-tehran/vis3-next-react';
 
 export default function Home() {
 
@@ -28,7 +28,7 @@ export default function Home() {
 
 # Use in React App:
 ```
-import { Vis3 } from '@kavimo/vis3-next-react'
+import { Vis3 } from '@kavimo-tehran/vis3-next-react'
 
 const handleLoad = ( media ) => {
     console.log('Vis: Media Loaded');
