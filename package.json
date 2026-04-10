@@ -1,6 +1,6 @@
 {
   "name": "@kavimo-tehran/vis3-next-react",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Kavimo Vis3 NextJs, React Component",
   "main": "dist/index.js",
   "repository": {
@@ -26,7 +26,6 @@
   "scripts": {
     "build": "babel src -d dist"
   },
-  "dependencies": {},
   "peerDependencies": {
     "react": "^16.0.0 || ^17.0.0 || ^18.0.0",
     "react-dom": "^16.0.0 || ^17.0.0 || ^18.0.0"
