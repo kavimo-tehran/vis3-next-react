@@ -77,6 +77,66 @@ const HomeComponent = () => {
 export default LoginForm;
 ```
 
+# Autoplay Example:
+
+### Nextjs Pages:
+```
+import { Vis3 } from '@kavimo-tehran/vis3-next-react';
+
+export default function Home() {
+  return (
+    <>
+      <Vis3 domainName="stream.domain.com" ID="xxxxxxxxxxxx" autoplay={true} />
+    </>
+  )
+}
+```
+
+### React App:
+```
+import { Vis3 } from '@kavimo-tehran/vis3-next-react'
+
+function App() {
+  return (
+    <div className="App">
+      <Vis3 domainName="stream.domain.com" ID="xxxxxxxxxxxx" autoplay={true} />
+    </div>
+  );
+}
+
+export default App;
+```
+
+### Nextjs App Router:
+```
+'use client'
+import { Vis3 } from '@kavimo-tehran/vis3-next-react';
+
+const HomeComponent = () => {
+    return (
+        <main>
+            <Vis3 domainName="stream.domain.com" ID="xxxxxxxxxxxx" autoplay={true} />
+        </main>
+    );
+}
+
+export default HomeComponent;
+```
+
+# Props:
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `domainName` | string | Yes | The domain of the Vis3 streaming server |
+| `ID` | string | Yes | The media ID to embed |
+| `onLoad` | function | No | Callback fired when media is loaded, receives the media object |
+| `autoplay` | boolean | No | If `true`, the media will start playing automatically |
+
+### Autoplay Example:
+```
+<Vis3 domainName="stream.domain.com" ID="xxxxxxxxxxxx" autoplay={true} />
+```
+
 # Handler Mehtod:
 ```
 /**

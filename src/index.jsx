@@ -17,7 +17,7 @@ const Vis3 = (props) => {
     // Create a script element and set its attributes
     const script = document.createElement('script')
     script.async = true
-    script.src = `https://${props?.domainName || ''}/${props?.ID || ''}/embed?container=${generatedID}&callback=vis_callback_${generatedID}`
+    script.src = `https://${props?.domainName || ''}/${props?.ID || ''}/embed?container=${generatedID}&callback=vis_callback_${generatedID}${props?.autoplay ? '&autoplay=true' : ''}`
 
     // Append the script to the document body
     document.body.appendChild(script)
