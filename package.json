@@ -1,6 +1,6 @@
 {
   "name": "@kavimo-tehran/vis3-next-react",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Kavimo Vis3 NextJs, React Component",
   "main": "dist/index.js",
   "repository": {
