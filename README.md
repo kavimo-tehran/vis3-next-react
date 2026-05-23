@@ -131,10 +131,23 @@ export default HomeComponent;
 | `ID` | string | Yes | The media ID to embed |
 | `onLoad` | function | No | Callback fired when media is loaded, receives the media object |
 | `autoplay` | boolean | No | If `true`, the media will start playing automatically |
+| `size` | string | No | Sets the player size. Use a preset like `"portrait"` or a resolution like `"1280x720"` |
 
 ### Autoplay Example:
 ```
 <Vis3 domainName="stream.domain.com" ID="xxxxxxxxxxxx" autoplay={true} />
+```
+
+# Size Example:
+
+### Portrait preset:
+```
+<Vis3 domainName="stream.domain.com" ID="xxxxxxxxxxxx" size="portrait" />
+```
+
+### Custom resolution:
+```
+<Vis3 domainName="stream.domain.com" ID="xxxxxxxxxxxx" size="1280x720" />
 ```
 
 # Handler Mehtod:
