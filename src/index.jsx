@@ -1,42 +1,70 @@
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useRef } from 'react'
 
 const Vis3 = (props) => {
-  // State to store the container ID
-  const [containerID, setContainerID] = useState('')
+  const { domainName, ID, autoplay, size, onLoad } = props
+
+  // One id per mounted component, generated during render so the div already carries it
+  // on the first paint: the embed script resolves its container by id as soon as it runs.
+  const containerIDRef = useRef(null)
+  if (containerIDRef.current === null) {
+    containerIDRef.current = Math.random().toString(36).substring(2)
+  }
+  const containerID = containerIDRef.current
+
+  // Held in a ref so that a caller passing an inline arrow function does not count as a
+  // changed dependency, which would tear the player down and rebuild it on every render.
+  const onLoadRef = useRef(onLoad)
+  onLoadRef.current = onLoad
+
+  const apiRef = useRef(null)
+  const unmountedRef = useRef(false)
 
   useEffect(() => {
-    // Generate a unique ID for the container
-    const generatedID = Math.random().toString(36).substring(2)
-    setContainerID(generatedID)
+    unmountedRef.current = false
+    apiRef.current = null
 
-    // If a callback function is provided, set it on the window object
-    if (typeof props.onLoad === 'function') {
-      window[`vis_callback_${generatedID}`] = props.onLoad
-    }
+    const callbackName = `vis_callback_${containerID}`
 
-    // Create a script element and set its attributes
-    const script = document.createElement('script')
-    script.async = true
-    script.src = `https://${props?.domainName || ''}/${props?.ID || ''}/embed?container=${generatedID}&callback=vis_callback_${generatedID}${props?.autoplay ? '&autoplay=true' : ''}${props?.size ? `&size=${props.size}` : ''}`
+    // Registered whether or not the caller passed onLoad: this callback is the only
+    // handle we ever get on the player, and tearing it down later depends on having it.
+    window[callbackName] = (result, vis) => {
+      if (unmountedRef.current) {
+        // Unmounted while the embed was still loading. The player has just been built
+        // into a container that is no longer on the page, so take it straight back down.
+        result && result.api && result.api.actions.Destroy && result.api.actions.Destroy()
+        return
+      }
 
-    // Append the script to the document body
-    document.body.appendChild(script)
+      apiRef.current = result && result.api
 
-    // Cleanup function to remove the script element when the component unmounts or props change
-    return () => {
-      document.body.removeChild(script)
-      // Remove the callback function from the window object
-      if (typeof props.onLoad === 'function') {
-        delete window[`vis_callback_${generatedID}`]
+      if (typeof onLoadRef.current === 'function') {
+        onLoadRef.current(result, vis)
       }
     }
-  }, [props]) // Run this effect whenever props change
 
-  return (
-    <>
-      <div id={containerID}></div>
-    </>
-  )
+    const script = document.createElement('script')
+    script.async = true
+    script.src = `https://${domainName || ''}/${ID || ''}/embed?container=${containerID}&callback=${callbackName}${autoplay ? '&autoplay=true' : ''}${size ? `&size=${size}` : ''}`
+
+    document.body.appendChild(script)
+
+    return () => {
+      unmountedRef.current = true
+
+      // Removing the script tag frees nothing — it has already run, and the player it
+      // built lives on in window.Vis. Without Destroy() hls.js keeps filling its buffer,
+      // so the fragments of a video the viewer has navigated away from keep downloading.
+      apiRef.current && apiRef.current.actions.Destroy && apiRef.current.actions.Destroy()
+      apiRef.current = null
+
+      script.remove()
+      delete window[callbackName]
+    }
+    // Deliberately not [props]: that object is a new identity on every render of the
+    // parent, which rebuilt the player each time instead of leaving it alone.
+  }, [domainName, ID, autoplay, size, containerID])
+
+  return <div id={containerID}></div>
 }
 
 export { Vis3 }
