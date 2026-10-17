@@ -1,68 +1,48 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 
-const Vis3 = (props) => {
-  const { domainName, ID, autoplay, size, onLoad } = props
+const Vis3 = ({ domainName, ID, autoplay, size, onLoad }) => {
+  // Set after mount, not during render: a render-time id differs between the server HTML
+  // and hydration, React keeps the server's, and the embed would never find its div.
+  const [containerID, setContainerID] = useState('')
+  useEffect(() => {
+    setContainerID(Math.random().toString(36).substring(2))
+  }, [])
 
-  // One id per mounted component, generated during render so the div already carries it
-  // on the first paint: the embed script resolves its container by id as soon as it runs.
-  const containerIDRef = useRef(null)
-  if (containerIDRef.current === null) {
-    containerIDRef.current = Math.random().toString(36).substring(2)
-  }
-  const containerID = containerIDRef.current
-
-  // Held in a ref so that a caller passing an inline arrow function does not count as a
-  // changed dependency, which would tear the player down and rebuild it on every render.
+  // A ref, so an inline onLoad does not rebuild the player on every parent render
   const onLoadRef = useRef(onLoad)
   onLoadRef.current = onLoad
 
-  const apiRef = useRef(null)
-  const unmountedRef = useRef(false)
-
   useEffect(() => {
-    unmountedRef.current = false
-    apiRef.current = null
+    if (!containerID) return
 
-    const callbackName = `vis_callback_${containerID}`
+    const callback = `vis_callback_${containerID}`
+    let api = null
+    let cancelled = false
 
-    // Registered whether or not the caller passed onLoad: this callback is the only
-    // handle we ever get on the player, and tearing it down later depends on having it.
-    window[callbackName] = (result, vis) => {
-      if (unmountedRef.current) {
-        // Unmounted while the embed was still loading. The player has just been built
-        // into a container that is no longer on the page, so take it straight back down.
-        result && result.api && result.api.actions.Destroy && result.api.actions.Destroy()
-        return
+    window[callback] = (result, vis) => {
+      if (cancelled) {
+        // Unmounted while the embed was still loading
+        delete window[callback]
+        return result.api.actions.Destroy?.()
       }
-
-      apiRef.current = result && result.api
-
-      if (typeof onLoadRef.current === 'function') {
-        onLoadRef.current(result, vis)
-      }
+      api = result.api
+      onLoadRef.current?.(result, vis)
     }
 
     const script = document.createElement('script')
     script.async = true
-    script.src = `https://${domainName || ''}/${ID || ''}/embed?container=${containerID}&callback=${callbackName}${autoplay ? '&autoplay=true' : ''}${size ? `&size=${size}` : ''}`
-
+    script.src = `https://${domainName || ''}/${ID || ''}/embed?container=${containerID}&callback=${callback}${autoplay ? '&autoplay=true' : ''}${size ? `&size=${size}` : ''}`
     document.body.appendChild(script)
 
     return () => {
-      unmountedRef.current = true
-
-      // Removing the script tag frees nothing — it has already run, and the player it
-      // built lives on in window.Vis. Without Destroy() hls.js keeps filling its buffer,
-      // so the fragments of a video the viewer has navigated away from keep downloading.
-      apiRef.current && apiRef.current.actions.Destroy && apiRef.current.actions.Destroy()
-      apiRef.current = null
-
+      cancelled = true
       script.remove()
-      delete window[callbackName]
+      if (!api) return
+      // Removing the script frees nothing: the player it built lives on in window.Vis
+      api.actions.Destroy?.()
+      delete window[callback]
     }
-    // Deliberately not [props]: that object is a new identity on every render of the
-    // parent, which rebuilt the player each time instead of leaving it alone.
-  }, [domainName, ID, autoplay, size, containerID])
+  }, [containerID, domainName, ID, autoplay, size])
 
   return <div id={containerID}></div>
 }
