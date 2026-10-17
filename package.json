@@ -24,7 +24,12 @@
   },
   "homepage": "https://github.com/kavimo-tehran/vis3-next-react#readme",
   "scripts": {
-    "build": "babel src -d dist"
+    "build": "babel src -d dist",
+    "release": "npm version patch",
+    "release:minor": "npm version minor",
+    "release:major": "npm version major",
+    "version": "npm run build && git add dist",
+    "postversion": "npm publish && git push --follow-tags"
   },
   "peerDependencies": {
     "react": "^16.0.0 || ^17.0.0 || ^18.0.0",
